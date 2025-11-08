@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Diffraction Lab</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Courier New', monospace;
+    background: #0a0e27;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 20%, rgba(0, 255, 157, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    animation: pulse 8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(20px);
+    padding: 30px;
+    border-radius: 20px;
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    box-shadow: 
+      0 0 40px rgba(0, 255, 255, 0.2),
+      inset 0 0 20px rgba(0, 255, 255, 0.05);
+    position: relative;
+  }
+
+  h2 {
+    font-size: 2.8em;
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: linear-gradient(45deg, #00ffff, #ff00ff, #00ff9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+    animation: textGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes textGlow {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.5); }
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #00ff9d;
+    font-size: 14px;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+    opacity: 0.8;
+  }
+
+  .mode-selector {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .mode-btn {
+    padding: 15px 40px;
+    font-size: 16px;
+    font-weight: 700;
+    border: 2px solid #00ffff;
+    background: rgba(0, 255, 255, 0.05);
+    color: #00ffff;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .mode-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(0, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .mode-btn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .mode-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+  }
+
+  .mode-btn.active {
+    background: linear-gradient(135deg, #00ffff, #00ff9d);
+    color: #0a0e27;
+    border-color: #00ff9d;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+  }
+
+  .mode-btn span {
+    position: relative;
+    z-index: 1;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+  }
+
+  .control-group {
+    background: rgba(0, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .control-group::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ffff, transparent);
+    animation: scan 3s linear infinite;
+  }
+
+  @keyframes scan {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  .control-group:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 25px rgba(0, 255, 255, 0.3);
+    border-color: #00ffff;
+  }
+
+  label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #00ffff;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.5);
+    color: #00ff9d;
+    font-family: 'Courier New', monospace;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #00ffff;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+    background: rgba(0, 0, 0, 0.7);
+  }
+
+  .info {
+    font-size: 10px;
+    color: #00ff9d;
+    margin-top: 8px;
+    opacity: 0.7;
+    letter-spacing: 0.5px;
+  }
+
+  .simulate-btn {
+    display: block;
+    width: 100%;
+    max-width: 350px;
+    margin: 30px auto;
+    padding: 20px 40px;
+    background: linear-gradient(135deg, #00ffff, #00ff9d);
+    color: #0a0e27;
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 30px rgba(0, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .simulate-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+  }
+
+  .simulate-btn:hover::before {
+    left: 100%;
+  }
+
+  .simulate-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 40px rgba(0, 255, 255, 0.6);
+  }
+
+  .simulate-btn:active {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .canvas-container {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.2);
+    margin-top: 20px;
+    border: 2px solid rgba(0, 255, 255, 0.2);
+    position: relative;
+  }
+
+  .canvas-container::before {
+    content: '◢';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 20px;
+    color: #00ffff;
+    opacity: 0.3;
+  }
+
+  .canvas-container::after {
+    content: '◣';
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 20px;
+    color: #00ffff;
+    opacity: 0.3;
+  }
+
+  canvas {
+    display: block;
+    margin: 0 auto;
+    border: 2px solid #00ffff;
+    background: #000;
+    border-radius: 10px;
+    box-shadow: 
+      0 0 40px rgba(0, 255, 255, 0.3),
+      inset 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+
+  .axis-label {
+    text-align: center;
+    color: #00ff9d;
+    font-size: 12px;
+    margin-top: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .zoom-btn {
+    padding: 10px 20px;
+    background: rgba(0, 255, 255, 0.1);
+    color: #00ffff;
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.3s ease;
+  }
+
+  .zoom-btn:hover {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: #00ffff;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .zoom-btn:active {
+    transform: translateY(0);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .control-group {
+    animation: fadeIn 0.5s ease;
+  }
+
+  .tech-dots {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.1;
+  }
+
+  .tech-dots::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      radial-gradient(circle, #00ffff 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+</style>
+</head>
+<body>
+
+<div class="tech-dots"></div>
+
+<div class="container">
+  <h2>⚛ Quantum Diffraction Lab</h2>
+  <div class="subtitle">[ WAVE INTERFERENCE SIMULATION SYSTEM ]</div>
+
+  <div class="mode-selector">
+    <button class="mode-btn active" onclick="setMode('single')">
+      <span>◈ Single Slit</span>
+    </button>
+    <button class="mode-btn" onclick="setMode('double')">
+      <span>◈ Double Slit</span>
+    </button>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label>◉ Wavelength λ (m)</label>
+      <input type="number" id="lambda" value="5e-7" step="1e-9">
+      <div class="info">// Visible: 400-700 nm</div>
+    </div>
+
+    <div class="control-group" id="singleSlitA">
+      <label>◉ Slit Width a (m)</label>
+      <input type="number" id="a" value="0.0001" step="1e-6">
+      <div class="info">// Range: 0.01-1 mm</div>
+    </div>
+
+    <div class="control-group hidden" id="doubleSlitA">
+      <label>◉ Slit Width a (m)</label>
+      <input type="number" id="a_double" value="0.00005" step="1e-6">
+      <div class="info">// Each slit width</div>
+    </div>
+
+    <div class="control-group hidden" id="slitSeparation">
+      <label>◉ Separation d (m)</label>
+      <input type="number" id="d" value="0.0003" step="1e-6">
+      <div class="info">// Center distance</div>
+    </div>
+
+    <div class="control-group">
+      <label>◉ Max Intensity I₀</label>
+      <input type="number" id="I0" value="1" step="0.1" min="0.1" max="5">
+      <div class="info">// Brightness scale</div>
+    </div>
+  </div>
+
+  <button class="simulate-btn" onclick="draw()">
+    ▶ Execute Simulation
+  </button>
+
+  <div class="canvas-container">
+    <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+      <button class="zoom-btn" onclick="zoomX(0.8)">− X Zoom Out</button>
+      <button class="zoom-btn" onclick="zoomX(1.25)">+ X Zoom In</button>
+      <button class="zoom-btn" onclick="zoomY(0.8)">− Y Zoom Out</button>
+      <button class="zoom-btn" onclick="zoomY(1.25)">+ Y Zoom In</button>
+      <button class="zoom-btn" onclick="resetZoom()">⟲ Reset</button>
+      <button class="zoom-btn" onclick="toggleGrid()">⊞ Grid</button>
+    </div>
+    <canvas id="canvas" width="800" height="400"></canvas>
+    <div class="axis-label">[ θ: Angle (°) | I: Intensity ]</div>
+  </div>
+</div>
+
+<script>
+let currentMode = 'single';
+let zoomLevelX = 1;
+let zoomLevelY = 1;
+let showGrid = true;
+
+function setMode(mode) {
+  currentMode = mode;
+  
+  const buttons = document.querySelectorAll('.mode-btn');
+  buttons.forEach((btn, idx) => {
+    if ((mode === 'single' && idx === 0) || (mode === 'double' && idx === 1)) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  
+  const singleA = document.getElementById('singleSlitA');
+  const doubleA = document.getElementById('doubleSlitA');
+  const separation = document.getElementById('slitSeparation');
+  
+  if (mode === 'single') {
+    singleA.classList.remove('hidden');
+    doubleA.classList.add('hidden');
+    separation.classList.add('hidden');
+  } else {
+    singleA.classList.add('hidden');
+    doubleA.classList.remove('hidden');
+    separation.classList.remove('hidden');
+  }
+  
+  draw();
+}
+
+function zoomX(factor) {
+  zoomLevelX *= factor;
+  zoomLevelX = Math.max(0.5, Math.min(zoomLevelX, 10));
+  draw();
+}
+
+function zoomY(factor) {
+  zoomLevelY *= factor;
+  zoomLevelY = Math.max(0.5, Math.min(zoomLevelY, 5));
+  draw();
+}
+
+function resetZoom() {
+  zoomLevelX = 1;
+  zoomLevelY = 1;
+  draw();
+}
+
+function toggleGrid() {
+  showGrid = !showGrid;
+  draw();
+}
+
+function drawAxes(ctx, width, height, centerY) {
+  // Draw grid if enabled
+  if (showGrid) {
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
+    
+    // Vertical grid lines
+    for (let i = 0; i <= 20; i++) {
+      const x = (i / 20) * width;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    
+    // Horizontal grid lines
+    for (let i = 0; i <= 10; i++) {
+      const y = (i / 10) * height;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+  }
+
+  // Draw X-axis
+  ctx.strokeStyle = 'rgba(0, 255, 255, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, centerY);
+  ctx.lineTo(width, centerY);
+  ctx.stroke();
+
+  // Draw Y-axis
+  ctx.beginPath();
+  ctx.moveTo(width / 2, 0);
+  ctx.lineTo(width / 2, height);
+  ctx.stroke();
+
+  // X-axis labels (more detailed based on zoom)
+  ctx.fillStyle = '#00ffff';
+  ctx.font = 'bold 10px Courier New';
+  ctx.textAlign = 'center';
+  
+  const angleRange = 180 / zoomLevelX;
+  const angleStep = angleRange > 90 ? 30 : angleRange > 45 ? 15 : angleRange > 20 ? 5 : 2;
+  
+  for (let angle = -90; angle <= 90; angle += angleStep) {
+    if (angle >= -angleRange/2 && angle <= angleRange/2) {
+      const normalizedAngle = angle / (angleRange / 2);
+      const x = width / 2 + (normalizedAngle * width / 2);
+      
+      if (x >= 0 && x <= width) {
+        ctx.fillText(angle + '°', x, centerY + 18);
+        
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)';
+        ctx.lineWidth = angle % (angleStep * 2) === 0 ? 2 : 1;
+        ctx.beginPath();
+        ctx.moveTo(x, centerY - 7);
+        ctx.lineTo(x, centerY + 7);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Y-axis labels (more detailed)
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#00ff9d';
+  ctx.font = 'bold 10px Courier New';
+  
+  const intensityStep = zoomLevelY > 2 ? 0.05 : zoomLevelY > 1.5 ? 0.1 : 0.2;
+  
+  for (let intensity = 0; intensity <= 1; intensity += intensityStep) {
+    const y = centerY - (intensity * height * 0.45 * zoomLevelY);
+    
+    if (intensity > 0 && y >= 10 && y <= height - 10) {
+      ctx.fillText(intensity.toFixed(2), width / 2 - 12, y + 4);
+      
+      ctx.strokeStyle = 'rgba(0, 255, 157, 0.3)';
+      ctx.lineWidth = intensity % 0.25 === 0 ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(width / 2 - 7, y);
+      ctx.lineTo(width / 2 + 7, y);
+      ctx.stroke();
+    }
+  }
+
+  // Axis labels with glow
+  ctx.fillStyle = '#00ffff';
+  ctx.font = 'bold 16px Courier New';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#00ffff';
+  ctx.shadowBlur = 10;
+  ctx.fillText('θ', width - 25, centerY - 15);
+  ctx.fillText('I', width / 2 + 25, 20);
+  ctx.shadowBlur = 0;
+  
+  // Zoom indicator
+  ctx.fillStyle = '#00ff9d';
+  ctx.font = 'bold 11px Courier New';
+  ctx.textAlign = 'left';
+  ctx.fillText('X: ' + zoomLevelX.toFixed(1) + 'x | Y: ' + zoomLevelY.toFixed(1) + 'x', 10, 20);
+}
+
+function draw() {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  
+  const lambda = parseFloat(document.getElementById("lambda").value);
+  const I0 = parseFloat(document.getElementById("I0").value);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const width = canvas.width;
+  const height = canvas.height;
+  const centerY = height / 2;
+
+  if (currentMode === 'single') {
+    drawSingleSlit(ctx, width, height, centerY, lambda, I0);
+  } else {
+    drawDoubleSlit(ctx, width, height, centerY, lambda, I0);
+  }
+}
+
+function drawSingleSlit(ctx, width, height, centerY, lambda, I0) {
+  const a = parseFloat(document.getElementById("a").value);
+
+  drawAxes(ctx, width, height, centerY);
+
+  const angleRange = 90 / zoomLevelX;
+
+  for (let x = 0; x < width; x++) {
+    let theta_deg = ((x / width) * 2 - 1) * angleRange;
+    let theta_rad = theta_deg * Math.PI / 180;
+    let beta = Math.PI * a * Math.sin(theta_rad) / lambda;
+
+    let I;
+    if (Math.abs(beta) < 1e-10) {
+      I = I0;
+    } else {
+      I = I0 * Math.pow(Math.sin(beta) / beta, 2);
+    }
+
+    const lineHeight = I * height * 0.9 * zoomLevelY;
+    const brightness = Math.min(255, Math.floor(I * 255 / I0));
+    
+    ctx.beginPath();
+    ctx.moveTo(x, centerY - lineHeight / 2);
+    ctx.lineTo(x, centerY + lineHeight / 2);
+    
+    const cyan = Math.floor(brightness);
+    const green = Math.floor(brightness * 0.9);
+    ctx.strokeStyle = `rgb(0, ${cyan}, ${green})`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    // Enhanced glow effect
+    if (brightness > 150) {
+      ctx.strokeStyle = `rgba(0, 255, 255, ${(brightness - 150) / 255 * 0.8})`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+  }
+}
+
+function drawDoubleSlit(ctx, width, height, centerY, lambda, I0) {
+  const a = parseFloat(document.getElementById("a_double").value);
+  const d = parseFloat(document.getElementById("d").value);
+
+  drawAxes(ctx, width, height, centerY);
+
+  const angleRange = 90 / zoomLevel;
+
+  for (let x = 0; x < width; x++) {
+    let theta_deg = ((x / width) * 2 - 1) * angleRange;
+    let theta_rad = theta_deg * Math.PI / 180;
+    
+    let beta = Math.PI * a * Math.sin(theta_rad) / lambda;
+    let singleSlitFactor;
+    if (Math.abs(beta) < 1e-10) {
+      singleSlitFactor = 1;
+    } else {
+      singleSlitFactor = Math.pow(Math.sin(beta) / beta, 2);
+    }
+
+    let delta = Math.PI * d * Math.sin(theta_rad) / lambda;
+    let interferenceFactor = Math.pow(Math.cos(delta), 2);
+
+    let I = I0 * singleSlitFactor * interferenceFactor;
+
+    const lineHeight = I * height * 0.9;
+    const brightness = Math.min(255, Math.floor(I * 255 / I0));
+
+    ctx.beginPath();
+    ctx.moveTo(x, centerY - lineHeight / 2);
+    ctx.lineTo(x, centerY + lineHeight / 2);
+    
+    const cyan = Math.floor(brightness);
+    const green = Math.floor(brightness * 0.9);
+    ctx.strokeStyle = `rgb(0, ${cyan}, ${green})`;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    // Enhanced glow effect
+    if (brightness > 150) {
+      ctx.strokeStyle = `rgba(0, 255, 255, ${(brightness - 150) / 255 * 0.8})`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+  }
+}
+
+draw();
+</script>
+
+</body>
+</html>
