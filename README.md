@@ -197,3 +197,6 @@ Start exploring quantum physics today! ⚛️✨# Simulator
 
 <img width="2876" height="1640" alt="image" src="https://github.com/user-attachments/assets/40e452db-d465-440c-9ee8-062d30a4f572" />
 
+<img width="2878" height="1642" alt="image" src="https://github.com/user-attachments/assets/24c789b2-4f84-4b98-9bed-0b7feba087a6" />
+
+
