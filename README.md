@@ -193,3 +193,7 @@ Yes! You can do this experiment with a laser pointer and thin slits cut in alumi
 🌟 Summary
 The Quantum Diffraction Lab makes one of physics' most important experiments easy to understand and explore. Play with the settings, watch the patterns change, and discover the wave nature of light for yourself!
 Start exploring quantum physics today! ⚛️✨# Simulator
+
+
+<img width="2876" height="1640" alt="image" src="https://github.com/user-attachments/assets/40e452db-d465-440c-9ee8-062d30a4f572" />
+
