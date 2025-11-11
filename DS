@@ -433,11 +433,9 @@
   </button>
 
   <div class="canvas-container">
-    <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
-      <button class="zoom-btn" onclick="zoomX(0.8)">− X Zoom Out</button>
-      <button class="zoom-btn" onclick="zoomX(1.25)">+ X Zoom In</button>
-      <button class="zoom-btn" onclick="zoomY(0.8)">− Y Zoom Out</button>
-      <button class="zoom-btn" onclick="zoomY(1.25)">+ Y Zoom In</button>
+    <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px;">
+      <button class="zoom-btn" onclick="zoom(0.8)">− Zoom Out</button>
+      <button class="zoom-btn" onclick="zoom(1.25)">+ Zoom In</button>
       <button class="zoom-btn" onclick="resetZoom()">⟲ Reset</button>
       <button class="zoom-btn" onclick="toggleGrid()">⊞ Grid</button>
     </div>
@@ -448,8 +446,7 @@
 
 <script>
 let currentMode = 'single';
-let zoomLevelX = 1;
-let zoomLevelY = 1;
+let zoomLevel = 1;
 let showGrid = true;
 
 function setMode(mode) {
@@ -481,21 +478,14 @@ function setMode(mode) {
   draw();
 }
 
-function zoomX(factor) {
-  zoomLevelX *= factor;
-  zoomLevelX = Math.max(0.5, Math.min(zoomLevelX, 10));
-  draw();
-}
-
-function zoomY(factor) {
-  zoomLevelY *= factor;
-  zoomLevelY = Math.max(0.5, Math.min(zoomLevelY, 5));
+function zoom(factor) {
+  zoomLevel *= factor;
+  zoomLevel = Math.max(0.5, Math.min(zoomLevel, 5));
   draw();
 }
 
 function resetZoom() {
-  zoomLevelX = 1;
-  zoomLevelY = 1;
+  zoomLevel = 1;
   draw();
 }
 
@@ -548,7 +538,7 @@ function drawAxes(ctx, width, height, centerY) {
   ctx.font = 'bold 10px Courier New';
   ctx.textAlign = 'center';
   
-  const angleRange = 180 / zoomLevelX;
+  const angleRange = 180 / zoomLevel;
   const angleStep = angleRange > 90 ? 30 : angleRange > 45 ? 15 : angleRange > 20 ? 5 : 2;
   
   for (let angle = -90; angle <= 90; angle += angleStep) {
@@ -574,13 +564,12 @@ function drawAxes(ctx, width, height, centerY) {
   ctx.fillStyle = '#00ff9d';
   ctx.font = 'bold 10px Courier New';
   
-  const intensityStep = zoomLevelY > 2 ? 0.05 : zoomLevelY > 1.5 ? 0.1 : 0.2;
-  
-  for (let intensity = 0; intensity <= 1; intensity += intensityStep) {
-    const y = centerY - (intensity * height * 0.45 * zoomLevelY);
+  for (let i = 0; i <= 10; i++) {
+    const intensity = i / 10;
+    const y = centerY - (intensity * height * 0.45);
     
     if (intensity > 0 && y >= 10 && y <= height - 10) {
-      ctx.fillText(intensity.toFixed(2), width / 2 - 12, y + 4);
+      ctx.fillText(intensity.toFixed(1), width / 2 - 12, y + 4);
       
       ctx.strokeStyle = 'rgba(0, 255, 157, 0.3)';
       ctx.lineWidth = intensity % 0.25 === 0 ? 2 : 1;
@@ -605,7 +594,7 @@ function drawAxes(ctx, width, height, centerY) {
   ctx.fillStyle = '#00ff9d';
   ctx.font = 'bold 11px Courier New';
   ctx.textAlign = 'left';
-  ctx.fillText('X: ' + zoomLevelX.toFixed(1) + 'x | Y: ' + zoomLevelY.toFixed(1) + 'x', 10, 20);
+  ctx.fillText('ZOOM: ' + zoomLevel.toFixed(1) + 'x', 10, 20);
 }
 
 function draw() {
@@ -633,7 +622,7 @@ function drawSingleSlit(ctx, width, height, centerY, lambda, I0) {
 
   drawAxes(ctx, width, height, centerY);
 
-  const angleRange = 90 / zoomLevelX;
+  const angleRange = 90 / zoomLevel;
 
   for (let x = 0; x < width; x++) {
     let theta_deg = ((x / width) * 2 - 1) * angleRange;
@@ -647,7 +636,7 @@ function drawSingleSlit(ctx, width, height, centerY, lambda, I0) {
       I = I0 * Math.pow(Math.sin(beta) / beta, 2);
     }
 
-    const lineHeight = I * height * 0.9 * zoomLevelY;
+    const lineHeight = I * height * 0.9;
     const brightness = Math.min(255, Math.floor(I * 255 / I0));
     
     ctx.beginPath();
